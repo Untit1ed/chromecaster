@@ -1,6 +1,8 @@
 [MASTER]
 disable =
     C0114, # missing-module-docstring
+    R0903, # too-few-public-methods
+    R0801, # Similar lines in 2 files
 
 [DESIGN]
 max-attributes = 30
