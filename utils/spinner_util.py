@@ -23,8 +23,8 @@ class SpinnerUtil:
     def __init__(self):
         if SpinnerUtil.__instance is not None:
             raise Exception("Singleton class, use get_instance() method instead.")
-        else:
-            SpinnerUtil.__instance = self
+
+        SpinnerUtil.__instance = self
         self.spinner = itertools.cycle(['-', '/', '|', '\\'])
         self.stop_event = Event()
 
