@@ -46,7 +46,7 @@ class StringUtils:
         Returns:
             str: The clickable link with the custom label.
         '''
-        return '\033]8;;{url}\a{label}\033]8;;\a'.format(url=url, label=label)
+        return f'\033]8;;{url}\a{label}\033]8;;\a'
 
     @staticmethod
     def get_percentage(current_time: float, duration: float) -> str:
