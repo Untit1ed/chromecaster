@@ -1,0 +1,5 @@
+[report]
+exclude_lines =
+    # Ignore code that is only run when invoked as main module
+    if __name__ == "__main__":
+        unittest.main()
