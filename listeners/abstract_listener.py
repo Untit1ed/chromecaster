@@ -1,6 +1,16 @@
 from abc import ABC, abstractmethod
 from typing import Callable
 
+from attr import dataclass
+
+
+@dataclass
+class MessageResult:
+    """
+    Class to hold listener's message result.
+    """
+    message: str
+    extra: object = None
 
 class AbstractListener(ABC):
     '''
@@ -12,7 +22,13 @@ class AbstractListener(ABC):
         pass
 
     @abstractmethod
-    def start(self, handler: Callable[[str], None]) -> None:
+    def send(self, message: str) -> None:
+        '''
+        Send message back to the listener
+        '''
+
+    @abstractmethod
+    async def start(self, handler: Callable[[str, object, MessageResult], None]) -> None:
         '''
         Listen to a message, call handler on message
         '''

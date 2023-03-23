@@ -1,9 +1,12 @@
+import asyncio
+import os
 import time
 
-import config
 from caster import Caster
 from listeners import get_listeners
+from listeners.abstract_listener import AbstractListener, MessageResult
 from parsers import get_parser_for_url
+from utils.url_utils import UrlUtils
 
 
 def main():
@@ -11,19 +14,22 @@ def main():
     Entry point of the app
     '''
 
-    with Caster(config.CHROMECAST_DEVICE) as caster:
+    with Caster(os.environ.get('CHROMECAST_DEVICE')) as caster:
         caster.connect()
         caster.set_playback_rate(1.2)
         caster.start_debug_thread()
 
-        def handle(message: str) -> None:
-            if message.message.startswith('https://'):
-                parsed_video = get_parser_for_url(message.message)[0].parse(message.message)
+        def handle(listener: AbstractListener, result: MessageResult) -> None:
+            url = UrlUtils.find_url(result.message)
+            if url:
+                parsed_video = get_parser_for_url(result.message)[0].parse(result.message)
                 caster.play(parsed_video)
                 caster.set_playback_rate(1.2)
+                listener.send(MessageResult(parsed_video.to_json(), result.extra))
 
-        for listener in get_listeners(config):
-            listener.start(handler = handle)
+        for listener in get_listeners(dict(os.environ)):
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(listener.start(handler=handle))
 
 
         try:
@@ -35,3 +41,5 @@ def main():
 
 if __name__ == "__main__":
     raise SystemExit(main())
+    #loop = asyncio.get_event_loop()
+    #loop.run_until_complete(main())

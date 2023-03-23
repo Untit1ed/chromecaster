@@ -11,6 +11,7 @@ setup(
         'ntfpy',
         'beautifulsoup4',
         'selenium',
+        'pyTelegramBotAPI',
         # Dev tools
         'pylint',
         'autopep8',
