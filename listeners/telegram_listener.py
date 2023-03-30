@@ -17,11 +17,11 @@ class TelegramListener(AbstractListener):
     def __init__(self, config: dict) -> None:
         self.bot = telebot.TeleBot(config['TELEGRAM_BOT_TOKEN'])
 
-    def send(self, message) -> None:
+    def send(self, message:MessageResult) -> None:
         '''
         Send message back to the listener
         '''
-        self.bot.reply_to(message.extra, "Got it")
+        self.bot.reply_to(message.extra, message.message, parse_mode="Markdown")
 
     async def start(self, handler: Callable[[AbstractListener, MessageResult], None]) -> None:
         '''

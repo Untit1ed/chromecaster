@@ -13,6 +13,7 @@ class ParseResult:
     title: str
     mime_type: str
     thumbnail_url: str = None
+    support_resume: bool = False
 
 
     def to_json(self) -> str:

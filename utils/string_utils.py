@@ -1,4 +1,6 @@
 import math
+import re
+from typing import Optional
 
 
 class StringUtils:
@@ -118,3 +120,88 @@ class StringUtils:
         hours, remainder = divmod(seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
         return f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
+
+    @staticmethod
+    def find_url(text: str) -> str:
+        """
+        Finds the first URL in a string.
+
+        Args:
+            text (str): The input text to search for URLs.
+
+        Returns:
+            str: The first URL found in the text, or None if no URLs are found.
+        """
+        pattern = re.compile(r"(?P<url>https?://[^\s]+)")
+
+        match = re.search(pattern, text)
+
+        if match:
+            return match.group("url")
+
+        return None
+
+    @staticmethod
+    def get_float(num_st:str) -> float:
+        '''
+        Check if float
+        '''
+        try:
+            return float(num_st)
+        except ValueError:
+            return -1
+
+
+    @staticmethod
+    def get_seconds(time_str:str) -> Optional[int]:
+        """
+        Converts a time string in the format "NN:NN:NN" to an integer representing the total number of seconds.
+
+        Args:
+            time_str (str): A string representing a time in the format "NN:NN:NN".
+
+        Returns:
+            int: The number of seconds represented by the input time string.
+
+        Example:
+            >>> to_seconds("00:01:23")
+            83
+        """
+        if not StringUtils.is_valid_time_format(time_str):
+            return None
+
+        hours, minutes, seconds = time_str.split(":")
+        return int(hours) * 3600 + int(minutes) * 60 + int(seconds)
+
+    @staticmethod
+    def is_valid_time_format(time_str:str) -> bool:
+        """
+        Determines whether a string is in the time format "NN:NN:NN"
+
+        Args:
+            time_str (str): A string representing a time.
+
+        Returns:
+            bool: True if the input string is in the correct format, False otherwise.
+        """
+        pattern = re.compile(r"\d{1,2}:\d{2}:\d{2}")
+        return pattern.fullmatch(time_str) is not None
+
+    @staticmethod
+    def extract_number(string:str) -> float:
+        """
+        Extracts a number from a string if it follows a plus or minus sign.
+
+        Args:
+            string (str): The string to search for a number.
+
+        Returns:
+            float or None: The number following a plus or minus sign, or None if the string does not
+            start with a plus or minus sign followed by a number.
+        """
+        pattern = re.compile(r'^[+-]\d+(\.\d+)?$')
+        match = pattern.match(string)
+        if match:
+            return float(match.group(0))
+
+        return None

@@ -10,6 +10,7 @@ def get_listeners(config:dict) -> list[AbstractListener]:
     Gets a list of available listeners
     '''
     return [
-        # ntfy_listener.NTFYListener(config), # TODO: figure out python async future call blocking
+        # ntfy_listener.NTFYListener(config),
+        # TODO: figure out python async future call blocking
         telegram_listener.TelegramListener(config)
     ]

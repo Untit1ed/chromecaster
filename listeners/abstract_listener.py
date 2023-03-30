@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable
+from typing import Callable, Optional
 
 from attr import dataclass
 
@@ -8,9 +8,13 @@ from attr import dataclass
 class MessageResult:
     """
     Class to hold listener's message result.
+
+    Attributes:
+        message (str): The message returned by the listener.
+        extra (object, optional): Optional extra data returned by the listener. Defaults to None.
     """
     message: str
-    extra: object = None
+    extra: Optional[object] = None
 
 class AbstractListener(ABC):
     '''

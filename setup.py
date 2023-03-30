@@ -12,6 +12,7 @@ setup(
         'beautifulsoup4',
         'selenium',
         'pyTelegramBotAPI',
+        'dacite',
         # Dev tools
         'pylint',
         'autopep8',
