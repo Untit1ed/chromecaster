@@ -1,9 +1,12 @@
+import asyncio
+import os
 import time
 
-import config
-from caster import Caster
+from caster.caster import Caster
 from listeners import get_listeners
+from listeners.abstract_listener import AbstractListener, MessageResult
 from parsers import get_parser_for_url
+from utils.string_utils import StringUtils
 
 
 def main():
@@ -11,20 +14,38 @@ def main():
     Entry point of the app
     '''
 
-    with Caster(config.CHROMECAST_DEVICE) as caster:
+    with Caster(os.environ.get('CHROMECAST_DEVICE')) as caster:
         caster.connect()
-        caster.set_playback_rate(1.2)
+
         caster.start_debug_thread()
 
-        def handle(message: str) -> None:
-            if message.message.startswith('https://'):
-                parsed_video = get_parser_for_url(message.message)[0].parse(message.message)
+        def on_callback(listener: AbstractListener, result: MessageResult) -> None:
+            url = StringUtils.find_url(result.message)
+            number = StringUtils.get_float(result.message)
+            seconds = StringUtils.get_seconds(result.message)
+            skip_seconds = StringUtils.extract_number(result.message)
+
+            # video url was provided
+            if url:
+                parsed_video = get_parser_for_url(url)[0].parse(url)
                 caster.play(parsed_video)
-                caster.set_playback_rate(1.2)
+                listener.send(MessageResult(caster.now_playing(parsed_video), result.extra))
+            # time code was provided
+            elif seconds:
+                caster.seek(seconds)
+            # FF or rewind
+            elif skip_seconds:
+                caster.skip(skip_seconds)
+            # volume or play rate
+            elif number >= 0:
+                if 0.5 <= number <= 2:  # 0.5 - 2 - play rate
+                    caster.set_playback_rate(number)
+                else:  # 0 - 100 - volume
+                    caster.set_volume(number)
 
-        for listener in get_listeners(config):
-            listener.start(handler = handle)
-
+        for listener in get_listeners(dict(os.environ)):
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(listener.start(handler=on_callback))
 
         try:
             while 1:
@@ -35,3 +56,5 @@ def main():
 
 if __name__ == "__main__":
     raise SystemExit(main())
+    #loop = asyncio.get_event_loop()
+    #loop.run_until_complete(main())
