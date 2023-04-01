@@ -21,7 +21,10 @@ class TelegramListener(AbstractListener):
         '''
         Send message back to the listener
         '''
-        self.bot.reply_to(message.extra, message.message, parse_mode="Markdown")
+        self.bot.reply_to(message.extra,
+            text = message.message,
+            parse_mode = "Markdown",
+            disable_web_page_preview = True)
 
     async def start(self, handler: Callable[[AbstractListener, MessageResult], None]) -> None:
         '''
