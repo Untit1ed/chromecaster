@@ -1,6 +1,7 @@
 from typing_extensions import Final
 import pytube
 from urllib.parse import urlparse
+from pytube.exceptions import LiveStreamError
 
 
 from parsers.abstract_parser import AbstractParser, ParseResult
@@ -43,7 +44,24 @@ class TubeParser(AbstractParser):
         url = fix_url(url)
 
         p_t = pytube.YouTube(url)
+        videos = []
+        video = None
+        try:
+            p_t.check_availability()
+        except LiveStreamError:
+            url = p_t.streaming_data['hlsManifestUrl']
+            video = {"url": url, "qualityLabel": 'Live', "mimeType": 'application/x-mpegURL;', 'bitrate': 0}
+            videos.append(video)
+            # videos = p_t.streaming_data['adaptiveFormats']
 
-        video = sorted(p_t.streaming_data['formats'], key=lambda x: x['bitrate'], reverse=True)[0]
+        if not videos:
+            videos = p_t.streaming_data['formats']
+        video = sorted(videos, key=lambda x: x['bitrate'], reverse=True)[0]
 
-        return ParseResult(video['url'], f"[{video['qualityLabel']}] {p_t.title}", video['mimeType'], p_t.thumbnail_url, True)
+        return ParseResult(
+            video['url'],
+            f"[{video['qualityLabel']}] {p_t.title}",
+            video['mimeType'],
+            p_t.thumbnail_url,
+            True,
+            video['qualityLabel'] == 'Live')

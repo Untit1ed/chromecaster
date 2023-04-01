@@ -153,7 +153,7 @@ class StringUtils:
 
 
     @staticmethod
-    def get_seconds(time_str:str) -> Optional[int]:
+    def time_str_to_seconds(time_str: str) -> Optional[int]:
         """
         Converts a time string in the format "NN:NN:NN" to an integer representing the total number of seconds.
 
@@ -170,7 +170,11 @@ class StringUtils:
         if not StringUtils.is_valid_time_format(time_str):
             return None
 
-        hours, minutes, seconds = time_str.split(":")
+        time_parts = time_str.split(":")
+        if len(time_parts) == 2:
+            time_parts.insert(0, 0)
+
+        hours, minutes, seconds = time_parts
         return int(hours) * 3600 + int(minutes) * 60 + int(seconds)
 
     @staticmethod
@@ -184,7 +188,8 @@ class StringUtils:
         Returns:
             bool: True if the input string is in the correct format, False otherwise.
         """
-        pattern = re.compile(r"\d{1,2}:\d{2}:\d{2}")
+
+        pattern = re.compile(r"^(([0-1]?[0-9]|2[0-3]):)?[0-5][0-9]:[0-5][0-9]$")
         return pattern.fullmatch(time_str) is not None
 
     @staticmethod
@@ -199,6 +204,7 @@ class StringUtils:
             float or None: The number following a plus or minus sign, or None if the string does not
             start with a plus or minus sign followed by a number.
         """
+
         pattern = re.compile(r'^[+-]\d+(\.\d+)?$')
         match = pattern.match(string)
         if match:

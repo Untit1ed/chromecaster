@@ -14,6 +14,7 @@ class ParseResult:
     mime_type: str
     thumbnail_url: str = None
     support_resume: bool = False
+    is_live: bool = False
 
 
     def to_json(self) -> str:

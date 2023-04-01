@@ -120,7 +120,10 @@ class Caster():
 
         start_at = 0
         if video.support_resume:
-            start_at = self.state.history[video.title] if video.title in self.state.history else 0
+            if video.title in self.state.history:
+                start_at = self.state.history[video.title]
+            else:
+                start_at = 0
 
         # TODO: play around with quick play in order to try different renderers
 # app_display_name:
@@ -136,7 +139,10 @@ class Caster():
 
         m_c.block_until_active()
 
-        self.set_playback_rate(self.state.play_rate)
+        if(video.is_live):
+            self.set_playback_rate(1)
+        else:
+            self.set_playback_rate(self.state.play_rate)
 
     def now_playing(self, video: ParseResult = None) -> str:
         '''

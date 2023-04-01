@@ -3,6 +3,7 @@ import os
 import time
 
 from caster.caster import Caster
+from pychromecast.error import NotConnected
 from listeners import get_listeners
 from listeners.abstract_listener import AbstractListener, MessageResult
 from parsers import get_parser_for_url
@@ -22,14 +23,20 @@ def main():
         def on_callback(listener: AbstractListener, result: MessageResult) -> None:
             url = StringUtils.find_url(result.message)
             number = StringUtils.get_float(result.message)
-            seconds = StringUtils.get_seconds(result.message)
+            seconds = StringUtils.time_str_to_seconds(result.message)
             skip_seconds = StringUtils.extract_number(result.message)
 
             # video url was provided
             if url:
-                parsed_video = get_parser_for_url(url)[0].parse(url)
-                caster.play(parsed_video)
-                listener.send(MessageResult(caster.now_playing(parsed_video), result.extra))
+                try:
+                    parsed_video = get_parser_for_url(url)[0].parse(url)
+                    caster.play(parsed_video)
+                    listener.send(MessageResult(caster.now_playing(parsed_video), result.extra))
+                except NotConnected:
+                    caster.play(parsed_video)
+                    listener.send(MessageResult(caster.now_playing(parsed_video), result.extra))
+                except Exception as exception:
+                    listener.send(MessageResult(str(exception), result.extra))
             # time code was provided
             elif seconds:
                 caster.seek(seconds)
