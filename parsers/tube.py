@@ -1,8 +1,8 @@
-from typing_extensions import Final
-import pytube
 from urllib.parse import urlparse
-from pytube.exceptions import LiveStreamError
 
+import pytube
+from pytube.exceptions import LiveStreamError
+from typing_extensions import Final
 
 from parsers.abstract_parser import AbstractParser, ParseResult
 

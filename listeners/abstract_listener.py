@@ -10,11 +10,12 @@ class MessageResult:
     Class to hold listener's message result.
 
     Attributes:
-        message (str): The message returned by the listener.
+        text (str): The message returned by the listener.
         extra (object, optional): Optional extra data returned by the listener. Defaults to None.
     """
-    message: str
+    text: str
     extra: Optional[object] = None
+    options: Optional[list[str]] = None
 
 class AbstractListener(ABC):
     '''
@@ -26,7 +27,7 @@ class AbstractListener(ABC):
         pass
 
     @abstractmethod
-    def send(self, message: str) -> None:
+    def send(self, message: MessageResult) -> None:
         '''
         Send message back to the listener
         '''

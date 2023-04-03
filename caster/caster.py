@@ -6,8 +6,8 @@ from threading import Thread
 from typing import Optional
 
 import pychromecast
-from caster.state import State
 
+from caster.state import State
 from parsers.abstract_parser import ParseResult
 from utils.spinner_util import SpinnerUtil
 from utils.string_utils import StringUtils
@@ -31,15 +31,19 @@ class Caster():
     last_known_status = 'IDLE'
     state: State
 
-    def __init__(self, chromecast_name):
+    def __init__(self, chromecast_name:str):
         """
         Initializes a new Caster object.
 
         Args:
             chromecast_name: The friendly name of the Chromecast device to connect to.
         """
-        self.state = State.init_state()
+
+        if not chromecast_name:
+            raise ValueError(f"`chromecast_name` cannot be empty")
         self.chromecast_name = chromecast_name
+
+        self.state = State.init_state()
         self.stop_debug = threading.Event()
 
     def __enter__(self):
@@ -118,13 +122,6 @@ class Caster():
 
         m_c = self.cast_device.media_controller
 
-        start_at = 0
-        if video.support_resume:
-            if video.title in self.state.history:
-                start_at = self.state.history[video.title]
-            else:
-                start_at = 0
-
         # TODO: play around with quick play in order to try different renderers
 # app_display_name:
 # 'Web Video Caster'
@@ -132,7 +129,7 @@ class Caster():
 # 'AD229957'
         m_c.play_media(video.url, video.mime_type, title=video.title,
                        thumb=video.thumbnail_url,
-                       current_time=start_at,
+                       current_time=0,
                        media_info={
                            'playbackRate': self.state.play_rate,
                            'volume': {'level': self.state.volume/100}})
@@ -184,7 +181,7 @@ Playback speed: *{self.cast_device.media_controller.status.playback_rate}*
             friendly_names=[self.chromecast_name])
 
         if not chromecasts:
-            raise RuntimeError('No Chromecast devices on the network')
+            raise RuntimeError(f'No Chromecast device `{self.chromecast_name}` on the network')
 
         return chromecasts[0]
 

@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 import json
-from typing import Final
 from dataclasses import dataclass
+from typing import Final
+
 import dacite
 
 FILE_LOC: Final[str] = 'settings.json'
