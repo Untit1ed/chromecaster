@@ -6,8 +6,8 @@ from threading import Thread
 from typing import Optional
 
 import pychromecast
-from caster.state import State
 
+from caster._state import State
 from parsers.abstract_parser import ParseResult
 from utils.spinner_util import SpinnerUtil
 from utils.string_utils import StringUtils
@@ -29,17 +29,22 @@ class Caster():
     browser: Optional[pychromecast.CastBrowser] = None
     debug_thread: Optional[Thread] = None
     last_known_status = 'IDLE'
+    current_video: Optional[ParseResult]
     state: State
 
-    def __init__(self, chromecast_name):
+    def __init__(self, chromecast_name:str):
         """
         Initializes a new Caster object.
 
         Args:
             chromecast_name: The friendly name of the Chromecast device to connect to.
         """
-        self.state = State.init_state()
+
+        if not chromecast_name:
+            raise ValueError("`chromecast_name` cannot be empty")
         self.chromecast_name = chromecast_name
+
+        self.state = State.init_state()
         self.stop_debug = threading.Event()
 
     def __enter__(self):
@@ -108,22 +113,19 @@ class Caster():
             "playbackRate": playback_rate,
             'mediaSessionId': self.cast_device.media_controller.status.media_session_id})
 
-    def play(self, video: ParseResult):
+    def play(self, video: ParseResult = None):
         """
         Plays a media on the Chromecast device.
 
         Args:
             url: A string representing the URL of the media.
         """
+        if video:
+            self.current_video = video
+        else:
+            video = self.current_video
 
         m_c = self.cast_device.media_controller
-
-        start_at = 0
-        if video.support_resume:
-            if video.title in self.state.history:
-                start_at = self.state.history[video.title]
-            else:
-                start_at = 0
 
         # TODO: play around with quick play in order to try different renderers
 # app_display_name:
@@ -132,14 +134,14 @@ class Caster():
 # 'AD229957'
         m_c.play_media(video.url, video.mime_type, title=video.title,
                        thumb=video.thumbnail_url,
-                       current_time=start_at,
+                       current_time=0,
                        media_info={
                            'playbackRate': self.state.play_rate,
                            'volume': {'level': self.state.volume/100}})
 
-        m_c.block_until_active()
+        m_c.block_until_active(5)
 
-        if(video.is_live):
+        if video.is_live:
             self.set_playback_rate(1)
         else:
             self.set_playback_rate(self.state.play_rate)
@@ -157,8 +159,9 @@ class Caster():
                 'https://i.imgur.com/a0hazzA.png')
 
         return f"""
-Now playing: *{video.title}* on _{self.cast_device.name}, {self.cast_device.model_name}_
-Playback speed: *{self.cast_device.media_controller.status.playback_rate}*
+Now playing:\t*{video.title}* on _{self.cast_device.name}, {self.cast_device.model_name}_
+Playback speed:\t*x{self.state.play_rate}*
+Volume:\t*{self.state.volume}%*
 
 [Thumbnail]({video.thumbnail_url}), [Stream url]({video.url})
 """
@@ -184,7 +187,7 @@ Playback speed: *{self.cast_device.media_controller.status.playback_rate}*
             friendly_names=[self.chromecast_name])
 
         if not chromecasts:
-            raise RuntimeError('No Chromecast devices on the network')
+            raise RuntimeError(f'No Chromecast device `{self.chromecast_name}` on the network')
 
         return chromecasts[0]
 
@@ -199,7 +202,7 @@ Playback speed: *{self.cast_device.media_controller.status.playback_rate}*
         mc_status = self.cast_device.media_controller.status
 
         # update state with current video time
-        if mc_status.title:
+        if mc_status.title and mc_status.current_time:
             self.state.history[mc_status.title] = mc_status.current_time
 
         content = mc_status.content_id

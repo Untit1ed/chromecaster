@@ -15,9 +15,9 @@ async def main():
     '''
 
     def handle(listener: AbstractListener, result: MessageResult) -> None:
-        url = UrlUtils.find_url(result.message)
+        url = UrlUtils.find_url(result.text)
         if url:
-            parsed_video = get_parser_for_url(result.message)[0].parse(result.message)
+            parsed_video = get_parser_for_url(result.text)[0].parse(result.text)
             listener.send(MessageResult(parsed_video.to_json(), result.extra))
 
     listeners = get_listeners(dict(os.environ))

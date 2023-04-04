@@ -2,12 +2,49 @@ import asyncio
 import os
 import time
 
-from caster.caster import Caster
+from dotenv import load_dotenv
 from pychromecast.error import NotConnected
+
+from caster import Caster
 from listeners import get_listeners
 from listeners.abstract_listener import AbstractListener, MessageResult
 from parsers import get_parser_for_url
 from utils.string_utils import StringUtils
+
+VIDEO_PLAY_THRESHOLD = 30
+
+
+def _play_video(caster: Caster, listener: AbstractListener, url: str, result: MessageResult) -> None:
+    # pass it to the parsers to get the video
+    for parser in get_parser_for_url(url):
+        try:
+            video = parser.parse(url)
+            if video:
+                break
+        except Exception as exception:
+            listener.send(MessageResult(str(exception), result.extra))
+
+    try:
+        caster.play(video)
+    # if there's another app interrupting, reconnect to the device
+    except NotConnected:
+        caster.play(video)
+    # debug on client side
+    except Exception as exception:
+        listener.send(MessageResult(str(exception), result.extra))
+        return
+
+    options = []
+    now_playing = caster.now_playing(video)
+    if video.support_resume and not video.is_live:
+        if video.title in caster.state.history:
+            start_at = caster.state.history[video.title]
+            if start_at > VIDEO_PLAY_THRESHOLD and (not video.duration or start_at <= video.duration - VIDEO_PLAY_THRESHOLD):
+                time_code = StringUtils.format_seconds(start_at)
+                now_playing += f"\n\n You didn't finish watching this video last time and stopped at `{time_code}`. Resume?"
+                options.append(time_code)
+
+    listener.send(MessageResult(now_playing, result.extra, options))
 
 
 def main():
@@ -15,28 +52,24 @@ def main():
     Entry point of the app
     '''
 
+    load_dotenv()
+
     with Caster(os.environ.get('CHROMECAST_DEVICE')) as caster:
         caster.connect()
 
         caster.start_debug_thread()
 
         def on_callback(listener: AbstractListener, result: MessageResult) -> None:
-            url = StringUtils.find_url(result.message)
-            number = StringUtils.get_float(result.message)
-            seconds = StringUtils.time_str_to_seconds(result.message)
-            skip_seconds = StringUtils.extract_number(result.message)
+            url = StringUtils.find_url(result.text)
+            number = StringUtils.get_float(result.text)
+            seconds = StringUtils.timestamp_to_seconds(result.text)
+            skip_seconds = StringUtils.extract_number(result.text)
 
             # video url was provided
             if url:
-                try:
-                    parsed_video = get_parser_for_url(url)[0].parse(url)
-                    caster.play(parsed_video)
-                    listener.send(MessageResult(caster.now_playing(parsed_video), result.extra))
-                except NotConnected:
-                    caster.play(parsed_video)
-                    listener.send(MessageResult(caster.now_playing(parsed_video), result.extra))
-                except Exception as exception:
-                    listener.send(MessageResult(str(exception), result.extra))
+                _play_video(caster, listener, url, result)
+            elif result.text == 'replay':
+                caster.play()
             # time code was provided
             elif seconds:
                 caster.seek(seconds)
@@ -63,5 +96,5 @@ def main():
 
 if __name__ == "__main__":
     raise SystemExit(main())
-    #loop = asyncio.get_event_loop()
-    #loop.run_until_complete(main())
+    # loop = asyncio.get_event_loop()
+    # loop.run_until_complete(main())

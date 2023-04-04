@@ -21,7 +21,7 @@ class NTFYListener(AbstractListener):
         '''
         Sends message
         '''
-        self.client.send(message.message)
+        self.client.send(message.text)
 
     async def start(self, handler: Callable[[AbstractListener, MessageResult], None]) -> None:
         '''

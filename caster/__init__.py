@@ -1,9 +1,9 @@
 
-from parsers import fallback, tube, web
-from parsers.abstract_parser import AbstractParser
+from caster._caster import Caster
+from parsers import fallback, tube, web, abstract_parser
 
 
-def get_parser_for_url(url) -> list[AbstractParser]:
+def get_parser_for_url(url) -> list[abstract_parser.AbstractParser]:
     '''
     Gets a suitable parser for a url
     '''
@@ -22,7 +22,8 @@ def get_parser_for_url(url) -> list[AbstractParser]:
 
     return [fallback.FallbackParser]
 
-def get_parsers() -> list[AbstractParser]:
+
+def get_parsers() -> list[abstract_parser.AbstractParser]:
     '''
     Gets a list of available parsers
     '''

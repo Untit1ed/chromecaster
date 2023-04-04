@@ -13,6 +13,7 @@ setup(
         'selenium',
         'pyTelegramBotAPI',
         'dacite',
+        'python-dotenv',
         # Dev tools
         'pylint',
         'autopep8',
