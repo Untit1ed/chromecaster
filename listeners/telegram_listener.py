@@ -69,9 +69,11 @@ class TelegramListener(AbstractListener):
             '''
             handler(self, MessageResult(call.data, call.message))
             # TODO: move this into handler's callback
+            #self.bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
             self.bot.answer_callback_query(call.id, text="Callback query processed!")
+            #self.bot.delete_message(call.message.chat.id, call.message.message_id)
 
-        @ self.bot.message_handler(commands=["play_rate", "volume", "seek"])
+        @ self.bot.message_handler(func=self._commands_filter)
         def message_commands(message: types.Message):
             for command, option in OPTIONS.items():
                 if message.text[1:].startswith(command):
@@ -90,3 +92,11 @@ class TelegramListener(AbstractListener):
             handler(self, MessageResult(message.text, message))
 
         self.bot.infinity_polling()
+
+    def _commands_filter(self, message: types.Message) -> bool:
+        if not message.text.startswith('/'):
+            return False
+
+        commands = list(OPTIONS.keys())
+        command = message.text.split()[0][1:].lower()
+        return command in commands

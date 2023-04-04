@@ -9,8 +9,7 @@ from parsers.abstract_parser import AbstractParser, ParseResult
 
 def fix_url(url:str) -> str:
     '''
-    Adds support for yewtu.be and other invidious links
-    That point to youtube videos
+    Adds support for yewtu.be and other invidious links that point to youtube videos
     '''
     parsed_url = urlparse(url)
     original_domain = parsed_url.netloc
