@@ -29,6 +29,7 @@ class Caster():
     browser: Optional[pychromecast.CastBrowser] = None
     debug_thread: Optional[Thread] = None
     last_known_status = 'IDLE'
+    current_video: Optional[ParseResult]
     state: State
 
     def __init__(self, chromecast_name:str):
@@ -40,7 +41,7 @@ class Caster():
         """
 
         if not chromecast_name:
-            raise ValueError(f"`chromecast_name` cannot be empty")
+            raise ValueError("`chromecast_name` cannot be empty")
         self.chromecast_name = chromecast_name
 
         self.state = State.init_state()
@@ -112,13 +113,17 @@ class Caster():
             "playbackRate": playback_rate,
             'mediaSessionId': self.cast_device.media_controller.status.media_session_id})
 
-    def play(self, video: ParseResult):
+    def play(self, video: ParseResult = None):
         """
         Plays a media on the Chromecast device.
 
         Args:
             url: A string representing the URL of the media.
         """
+        if video:
+            self.current_video = video
+        else:
+            video = self.current_video
 
         m_c = self.cast_device.media_controller
 
@@ -154,8 +159,9 @@ class Caster():
                 'https://i.imgur.com/a0hazzA.png')
 
         return f"""
-Now playing: *{video.title}* on _{self.cast_device.name}, {self.cast_device.model_name}_
-Playback speed: *{self.cast_device.media_controller.status.playback_rate}*
+Now playing:\t*{video.title}* on _{self.cast_device.name}, {self.cast_device.model_name}_
+Playback speed:\t*x{self.state.play_rate}*
+Volume:\t*{self.state.volume}%*
 
 [Thumbnail]({video.thumbnail_url}), [Stream url]({video.url})
 """

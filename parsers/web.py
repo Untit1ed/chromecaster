@@ -11,7 +11,7 @@ class WebParser(AbstractParser):
 
     @staticmethod
     def supported_domains() -> list[str]:
-        return ['rumble.com']
+        return ['rumble.com', 'vkplay.live']
 
     @staticmethod
     def parse(url: str) -> ParseResult:
@@ -38,9 +38,18 @@ class WebParser(AbstractParser):
         # find all videos on the webpage
         videos = soup.find_all('video')
         for video in videos:
-            if video.get('src'):
-                video_url = video.get('src')
-                thumbnail_url = video.get('poster')
+            src = video.get('src')
+            thumbnail_url = video.get('poster')
+
+            if src:
+                video_url = src
                 print(video_url)
+            else:
+                children = video.findChildren('source')
+                for child in children:
+                    src = child.get('src')
+                    if src:
+                        video_url = src
+                        print(video_url)
 
         return ParseResult(video_url, title, 'video/mp4', thumbnail_url)

@@ -1,5 +1,5 @@
 
-from parsers import fallback, tube, web, invidious
+from parsers import fallback, invidious, tube, web
 from parsers.abstract_parser import AbstractParser
 
 

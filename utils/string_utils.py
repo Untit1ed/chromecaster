@@ -153,7 +153,7 @@ class StringUtils:
 
 
     @staticmethod
-    def time_str_to_seconds(time_str: str) -> Optional[int]:
+    def timestamp_to_seconds(time_str: str) -> Optional[int]:
         """
         Converts a time string in the format "NN:NN:NN" to an integer representing the total number of seconds.
 
@@ -189,7 +189,7 @@ class StringUtils:
             bool: True if the input string is in the correct format, False otherwise.
         """
 
-        pattern = re.compile(r"^(([0-1]?[0-9]|2[0-3]):)?[0-5][0-9]:[0-5][0-9]$")
+        pattern = re.compile(r"^(([0-1]?[0-9]|2[0-3]):)?[0-5]?[0-9]:[0-5][0-9]$")
         return pattern.fullmatch(time_str) is not None
 
     @staticmethod

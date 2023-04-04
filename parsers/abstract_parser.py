@@ -13,6 +13,7 @@ class ParseResult:
     title: str
     mime_type: str
     thumbnail_url: str = None
+    duration: float = None
     support_resume: bool = False
     is_live: bool = False
 

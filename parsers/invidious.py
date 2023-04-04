@@ -1,7 +1,5 @@
-from urllib.parse import urlparse
-import requests
-
 import pytube
+import requests
 
 from parsers.abstract_parser import AbstractParser, ParseResult
 from parsers.tube import TubeParser, fix_url
@@ -54,5 +52,6 @@ class InvidiousParser(AbstractParser):
             f"[Invidious] {p_t.title}",
             'video/mp4',
             p_t.thumbnail_url,
+            p_t.length,
             True,
             False)

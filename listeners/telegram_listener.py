@@ -6,7 +6,6 @@ from telebot import TeleBot, types
 
 from listeners.abstract_listener import AbstractListener, MessageResult
 
-
 OPTIONS = {
     'play_rate': {
         'buttons': ['0.75', '1', '1.25', '1.5', '1.75', '2'],
@@ -22,6 +21,9 @@ OPTIONS = {
         'buttons': ['-5', '-10', '-15', '-30', '+5', '+10', '+15', '+30'],
         'message': "⏪ Rewind or Fast Forward ⏩ (seconds):",
         'callback_message': "Seek {} seconds"
+    },
+    'replay':{
+        'callback_message': "Replaying the media"
     }
 }
 
@@ -38,19 +40,19 @@ class TelegramListener(AbstractListener):
 
     def send(self, message: MessageResult) -> None:
         '''
-        Send message back to the listener
+        Handle message that was sent back to the listener
         '''
+        markup = types.InlineKeyboardMarkup(row_width=3)
+        buttons = []
         if message.options:
-            markup = types.InlineKeyboardMarkup(row_width=3)
+            buttons += [types.InlineKeyboardButton(f'🧭 {option}', callback_data=option) for option in message.options]
 
-            buttons = [types.InlineKeyboardButton(option, callback_data=option) for option in message.options]
-            markup.add(*buttons)
-
-            self.bot.send_message(message.extra.chat.id, message.text, reply_markup=markup,
-                                  parse_mode="Markdown", disable_web_page_preview=True)
-        else:
-            self.bot.reply_to(message.extra,
-                              text=message.text,
+        buttons.append(types.InlineKeyboardButton('🔁 Replay', callback_data="replay;replay"))
+        markup.add(*buttons)
+        self.bot.send_message(message.extra.chat.id,
+                              message.text,
+                              reply_to_message_id=message.extra.id,
+                              reply_markup=markup,
                               parse_mode="Markdown",
                               disable_web_page_preview=True)
 

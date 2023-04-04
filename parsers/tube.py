@@ -62,5 +62,6 @@ class TubeParser(AbstractParser):
             f"[{video['qualityLabel']}] {p_t.title}",
             video['mimeType'],
             p_t.thumbnail_url,
+            p_t.length,
             True,
             video['qualityLabel'] == 'Live')
