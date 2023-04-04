@@ -7,7 +7,7 @@ from typing import Optional
 
 import pychromecast
 
-from caster.state import State
+from caster._state import State
 from parsers.abstract_parser import ParseResult
 from utils.spinner_util import SpinnerUtil
 from utils.string_utils import StringUtils
@@ -134,9 +134,9 @@ class Caster():
                            'playbackRate': self.state.play_rate,
                            'volume': {'level': self.state.volume/100}})
 
-        m_c.block_until_active()
+        m_c.block_until_active(5)
 
-        if(video.is_live):
+        if video.is_live:
             self.set_playback_rate(1)
         else:
             self.set_playback_rate(self.state.play_rate)
@@ -196,7 +196,7 @@ Playback speed: *{self.cast_device.media_controller.status.playback_rate}*
         mc_status = self.cast_device.media_controller.status
 
         # update state with current video time
-        if mc_status.title:
+        if mc_status.title and mc_status.current_time:
             self.state.history[mc_status.title] = mc_status.current_time
 
         content = mc_status.content_id

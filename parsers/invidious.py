@@ -4,26 +4,7 @@ import requests
 import pytube
 
 from parsers.abstract_parser import AbstractParser, ParseResult
-from parsers.tube import TubeParser
-
-
-def fix_url(url: str) -> str:
-    '''
-    Adds support for yewtu.be and other invidious links
-    That point to youtube videos
-    '''
-    parsed_url = urlparse(url)
-    original_domain = parsed_url.netloc
-
-    if original_domain.startswith('www.'):
-        domain = original_domain[4:]  # strip out www. part if present
-    else:
-        domain = original_domain
-
-    if domain not in TubeParser.YOUTUBE_URLS:
-        url = url.replace(original_domain, TubeParser.YOUTUBE_URLS[0])
-
-    return url
+from parsers.tube import TubeParser, fix_url
 
 
 class InvidiousParser(AbstractParser):
@@ -65,7 +46,7 @@ class InvidiousParser(AbstractParser):
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"
         }
         response = requests.get(url, headers=headers, allow_redirects=False, timeout=5)
-        if response.status_code == 302: # redirect
+        if response.status_code == 302:  # redirect
             url = response.next.url
 
         return ParseResult(

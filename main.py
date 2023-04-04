@@ -5,7 +5,7 @@ import time
 from dotenv import load_dotenv
 from pychromecast.error import NotConnected
 
-from caster.caster import Caster
+from caster import Caster
 from listeners import get_listeners
 from listeners.abstract_listener import AbstractListener, MessageResult
 from parsers import get_parser_for_url

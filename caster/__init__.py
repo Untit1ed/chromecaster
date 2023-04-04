@@ -1,5 +1,6 @@
 
 from parsers import fallback, tube, web
+from caster._caster import Caster
 from parsers.abstract_parser import AbstractParser
 
 

@@ -10,15 +10,18 @@ from listeners.abstract_listener import AbstractListener, MessageResult
 OPTIONS = {
     'play_rate': {
         'buttons': ['0.75', '1', '1.25', '1.5', '1.75', '2'],
-        'message': "Choose play rate"
+        'message': "Choose playback rate 🐢-🚶‍♂️-🏃‍♂️",
+        'callback_message': "Playback rate is set to {}"
     },
     'volume': {
         'buttons': ['0', '10', '25', '50', '75', '90', '100'],
-        'message': "Choose volume"
+        'message': "Choose volume 🔇-🔈-🔉-🔊",
+        'callback_message': "Play rate is set to {}"
     },
     'seek': {
         'buttons': ['-5', '-10', '-15', '-30', '+5', '+10', '+15', '+30'],
-        'message': "FF/Rewind seconds:"
+        'message': "⏪ Rewind or Fast Forward ⏩ (seconds):",
+        'callback_message': "Seek {} seconds"
     }
 }
 
@@ -67,21 +70,48 @@ class TelegramListener(AbstractListener):
             '''
             Handles button callbacks
             '''
-            handler(self, MessageResult(call.data, call.message))
-            # TODO: move this into handler's callback
-            #self.bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
-            self.bot.answer_callback_query(call.id, text="Callback query processed!")
-            #self.bot.delete_message(call.message.chat.id, call.message.message_id)
+            if call.data.startswith('CLOSE;'):
+                self.bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
+                self.bot.delete_message(call.message.chat.id, call.message.message_id)
+                parent_message = [int(item) for item in call.data.split(';')[1:]]
+                self.bot.delete_message(*parent_message)
+                return
+
+            message = call.data
+            action = None
+            if ';' in message:
+                action, message = message.split(';')
+
+            handler(self, MessageResult(message, call.message))
+
+            if action:
+                callback_message = OPTIONS[action]['callback_message'].format(message)
+            else:
+                callback_message = message
+
+            self.bot.answer_callback_query(call.id, text=callback_message)
 
         @ self.bot.message_handler(func=self._commands_filter)
         def message_commands(message: types.Message):
             for command, option in OPTIONS.items():
                 if message.text[1:].startswith(command):
                     markup = types.InlineKeyboardMarkup(row_width=4)
-                    buttons = [types.InlineKeyboardButton(button, callback_data=button) for button in option['buttons']]
+                    buttons = [types.InlineKeyboardButton(
+                        button,
+                        callback_data=f'{command};{button}'
+                    ) for button in option['buttons']]
                     markup.add(*buttons)
 
-                    self.bot.send_message(message.chat.id, option['message'], reply_markup=markup)
+                    # add close button with information about trigger message
+                    markup.row(types.InlineKeyboardButton(
+                        '❌ Close',
+                        callback_data=f'CLOSE;{message.chat.id};{message.message_id}'
+                    ))
+
+                    self.bot.send_message(
+                        message.chat.id, option['message'],
+                        reply_markup=markup
+                    )
                     break
 
         @ self.bot.message_handler(func=lambda msg: True)
