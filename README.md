@@ -21,7 +21,15 @@ To use Chromecaster, you'll need to install Python 3.x
 	pip install --upgrade pip
 	pip install -e .
 	
-Then modify `.env` file with your Chromecast device name and your Telegram bot token. You'll need to create a bot and obtain a bot token from the BotFather.
+Then modify `.env` file with your Chromecast device name and your Telegram bot token. 
+
+You'll need to create a bot and obtain a bot token from the BotFather.
+Provide the BotFather with the following commands:
+```
+play_rate - control playback speed 0.5 - 2
+volume - control device volume 0 - 100
+seek - seek forward or backward N seconds
+```
 	
 ## Usage
 To use Chromecaster, simply run `main.py` script.
