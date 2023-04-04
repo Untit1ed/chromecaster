@@ -33,7 +33,15 @@ def main():
             # video url was provided
             if url:
                 # pass it to the parsers to get the video
-                parsed_video = get_parser_for_url(url)[0].parse(url)
+                for parser in get_parser_for_url(url):
+                    try:
+                        parsed_video = parser.parse(url)
+                        if parsed_video:
+                            break
+
+                    except Exception as error:
+                        print(error)
+
                 proceed = True
                 try:
                     caster.play(parsed_video)

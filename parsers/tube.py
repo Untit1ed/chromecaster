@@ -50,7 +50,7 @@ class TubeParser(AbstractParser):
             p_t.check_availability()
         except LiveStreamError:
             url = p_t.streaming_data['hlsManifestUrl']
-            video = {"url": url, "qualityLabel": 'Live', "mimeType": 'application/x-mpegURL;', 'bitrate': 0}
+            video = {"url": url, "qualityLabel": 'Live', "mimeType": 'application/x-mpegURL', 'bitrate': 0}
             videos.append(video)
             # videos = p_t.streaming_data['adaptiveFormats']
 

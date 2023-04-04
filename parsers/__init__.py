@@ -1,5 +1,5 @@
 
-from parsers import fallback, tube, web
+from parsers import fallback, tube, web, invidious
 from parsers.abstract_parser import AbstractParser
 
 
@@ -26,4 +26,4 @@ def get_parsers() -> list[AbstractParser]:
     '''
     Gets a list of available parsers
     '''
-    return [tube.TubeParser,web.WebParser]
+    return [tube.TubeParser, invidious.InvidiousParser, web.WebParser]
