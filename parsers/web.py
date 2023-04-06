@@ -52,4 +52,4 @@ class WebParser(AbstractParser):
                         video_url = src
                         print(video_url)
 
-        return ParseResult(video_url, title, 'video/mp4', thumbnail_url)
+        return ParseResult(video_url, url, title, 'video/mp4', thumbnail_url)

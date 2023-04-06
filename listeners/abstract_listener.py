@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Callable, Optional
 
 from attr import dataclass
+from parsers.abstract_parser import ParseResult
 
 
 @dataclass
@@ -16,6 +17,7 @@ class MessageResult:
     text: str
     extra: Optional[object] = None
     options: Optional[list[str]] = None
+    video: Optional[ParseResult] = None
 
 class AbstractListener(ABC):
     '''

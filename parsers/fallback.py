@@ -14,4 +14,4 @@ class FallbackParser(AbstractParser):
 
     @staticmethod
     def parse(url: str) -> ParseResult:
-        return ParseResult(url, 'Default Video', 'video/mp4')
+        return ParseResult(url, url, 'Default Video', 'video/mp4')

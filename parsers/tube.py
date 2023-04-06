@@ -40,25 +40,30 @@ class TubeParser(AbstractParser):
         Parse
         '''
 
-        url = fix_url(url)
+        youtube_url = fix_url(url)
 
-        p_t = pytube.YouTube(url)
+        p_t = pytube.YouTube(youtube_url)
         videos = []
         video = None
         try:
             p_t.check_availability()
         except LiveStreamError:
-            url = p_t.streaming_data['hlsManifestUrl']
-            video = {"url": url, "qualityLabel": 'Live', "mimeType": 'application/x-mpegURL', 'bitrate': 0}
+            stream_url = p_t.streaming_data['hlsManifestUrl']
+            video = {"url": stream_url, "qualityLabel": 'Live', "mimeType": 'application/x-mpegURL', 'bitrate': 0}
             videos.append(video)
             # videos = p_t.streaming_data['adaptiveFormats']
 
         if not videos:
-            videos = p_t.streaming_data['formats']
+            try:
+                videos = p_t.streaming_data['formats']
+            except Exception:
+                videos = [{"url": item.url, "qualityLabel": item.resolution,
+                           "mimeType": item.mime_type, 'bitrate': item.bitrate} for item in p_t.fmt_streams]
         video = sorted(videos, key=lambda x: x['bitrate'], reverse=True)[0]
 
         return ParseResult(
             video['url'],
+            url,
             f"[{video['qualityLabel']}] {p_t.title}",
             video['mimeType'],
             p_t.thumbnail_url,

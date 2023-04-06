@@ -22,8 +22,13 @@ OPTIONS = {
         'message': "⏪ Rewind or Fast Forward ⏩ (seconds):",
         'callback_message': "Seek {} seconds"
     },
-    'replay':{
+    'replay': {
+        'message': '🔁 Replay',
         'callback_message': "Replaying the media"
+    },
+    'close': {
+        'message': '❌ Close',
+        'callback_message': "Dialog is closed"
     }
 }
 
@@ -45,15 +50,17 @@ class TelegramListener(AbstractListener):
         markup = types.InlineKeyboardMarkup(row_width=3)
         buttons = []
         if message.options:
-            buttons += [types.InlineKeyboardButton(f'🧭 {option}', callback_data=option) for option in message.options]
+            buttons += [self._add_button(f'🧭 {option}', option) for option in message.options]
 
-        buttons.append(types.InlineKeyboardButton('🔁 Replay', callback_data="replay;replay"))
+        buttons.append(self._add_button(
+            OPTIONS['replay']['message'],
+            f'rp {message.video.original_url}', 'replay'))
         markup.add(*buttons)
         self.bot.send_message(message.extra.chat.id,
                               message.text,
                               reply_to_message_id=message.extra.id,
                               reply_markup=markup,
-                              parse_mode="Markdown",
+                              parse_mode="MarkdownV2",
                               disable_web_page_preview=True)
 
     async def start(self, handler: Callable[[AbstractListener, MessageResult], None]) -> None:
@@ -72,22 +79,22 @@ class TelegramListener(AbstractListener):
             '''
             Handles button callbacks
             '''
-            if call.data.startswith('CLOSE;'):
-                self.bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
-                self.bot.delete_message(call.message.chat.id, call.message.message_id)
-                parent_message = [int(item) for item in call.data.split(';')[1:]]
-                self.bot.delete_message(*parent_message)
-                return
 
             message = call.data
-            action = None
+            option = None
             if ';' in message:
-                action, message = message.split(';')
+                option, message, *_ = message.split(';')
 
-            handler(self, MessageResult(message, call.message))
+            if option and option == 'close':
+                parent_message = [int(item) for item in message.split(':')]
+                self.bot.delete_message(*parent_message)
+                # self.bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
+                self.bot.delete_message(call.message.chat.id, call.message.message_id)
+            else:
+                handler(self, MessageResult(message, call.message))
 
-            if action:
-                callback_message = OPTIONS[action]['callback_message'].format(message)
+            if option:
+                callback_message = OPTIONS[option]['callback_message'].format(message)
             else:
                 callback_message = message
 
@@ -106,8 +113,8 @@ class TelegramListener(AbstractListener):
 
                     # add close button with information about trigger message
                     markup.row(types.InlineKeyboardButton(
-                        '❌ Close',
-                        callback_data=f'CLOSE;{message.chat.id};{message.message_id}'
+                        OPTIONS['close']['message'],
+                        callback_data=f'close;{message.chat.id}:{message.message_id}'
                     ))
 
                     self.bot.send_message(
@@ -132,3 +139,13 @@ class TelegramListener(AbstractListener):
         commands = list(OPTIONS.keys())
         command = message.text.split()[0][1:].lower()
         return command in commands
+
+    def _add_button(self, label: str, message: str, command: str = None) -> types.InlineKeyboardButton:
+        if command:
+            data = f"{command};{message}"[:64]
+        else:
+            data = message
+
+        return types.InlineKeyboardButton(
+            text=label,
+            callback_data=data)

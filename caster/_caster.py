@@ -29,10 +29,10 @@ class Caster():
     browser: Optional[pychromecast.CastBrowser] = None
     debug_thread: Optional[Thread] = None
     last_known_status = 'IDLE'
-    current_video: Optional[ParseResult]
+    current_video: Optional[ParseResult] = None
     state: State
 
-    def __init__(self, chromecast_name:str):
+    def __init__(self, chromecast_name: str):
         """
         Initializes a new Caster object.
 
@@ -153,17 +153,25 @@ class Caster():
 
         if not video:
             video = ParseResult(
-                self.cast_device.media_controller.status.content_id,
-                self.cast_device.status.status_text,
-                '',
-                'https://i.imgur.com/a0hazzA.png')
+                url=self.cast_device.media_controller.status.content_id,
+                title=self.cast_device.status.status_text,
+                mime_type='',
+                thumbnail_url='https://i.imgur.com/a0hazzA.png')
+
+        title = StringUtils.escape_markdown(video.title)
+        device_info = StringUtils.escape_markdown(f'{self.cast_device.name}, {self.cast_device.model_name}')
+        play_rate = StringUtils.escape_markdown(self.state.play_rate)
+        volume = StringUtils.escape_markdown(self.state.volume)
+        thumbnail_url = StringUtils.escape_markdown(video.thumbnail_url)
+        video_url=StringUtils.escape_markdown(video.url)
 
         return f"""
-Now playing:\t*{video.title}* on _{self.cast_device.name}, {self.cast_device.model_name}_
-Playback speed:\t*x{self.state.play_rate}*
-Volume:\t*{self.state.volume}%*
+Now playing: __*{title}*__
+Device: *{device_info}*
+Playback speed: *x{play_rate}*
+Volume: *{volume}%*
 
-[Thumbnail]({video.thumbnail_url}), [Stream url]({video.url})
+[Thumbnail]({thumbnail_url}), [Stream url]({video_url})
 """
 
     def discover_chromecast_devices(self) -> list[pychromecast.CastBrowser]:

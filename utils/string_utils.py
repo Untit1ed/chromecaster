@@ -95,8 +95,6 @@ class StringUtils:
             filled_length = 0
             formatted_time = f"{StringUtils.format_seconds(current_time)} / unknown"
 
-
-
         progress_bar = '█' * filled_length + '-' * (length - filled_length)
         return f'|{progress_bar}| \
             {percentage} \
@@ -142,7 +140,7 @@ class StringUtils:
         return None
 
     @staticmethod
-    def get_float(num_st:str) -> float:
+    def get_float(num_st: str) -> float:
         '''
         Check if float
         '''
@@ -150,7 +148,6 @@ class StringUtils:
             return float(num_st)
         except ValueError:
             return -1
-
 
     @staticmethod
     def timestamp_to_seconds(time_str: str) -> Optional[int]:
@@ -178,7 +175,7 @@ class StringUtils:
         return int(hours) * 3600 + int(minutes) * 60 + int(seconds)
 
     @staticmethod
-    def is_valid_time_format(time_str:str) -> bool:
+    def is_valid_time_format(time_str: str) -> bool:
         """
         Determines whether a string is in the time format "NN:NN:NN"
 
@@ -193,7 +190,7 @@ class StringUtils:
         return pattern.fullmatch(time_str) is not None
 
     @staticmethod
-    def extract_number(string:str) -> float:
+    def extract_number(string: str) -> float:
         """
         Extracts a number from a string if it follows a plus or minus sign.
 
@@ -211,3 +208,26 @@ class StringUtils:
             return float(match.group(0))
 
         return None
+
+    @staticmethod
+    def escape_markdown(text: str) -> str:
+        """
+        Escape special characters used in Markdown syntax.
+
+        Args:
+            text: The input string to escape.
+
+        Returns:
+            The escaped string with special Markdown characters replaced by escape sequences.
+
+        Examples:
+            >>> escape_markdown('**bold text**')
+            '\\*\\*bold text\\*\\*'
+
+        """
+        # Define a list of markdown characters that need to be escaped
+        markdown_chars = ['`', '*', '_', '{', '}', '[', ']', '(', ')', '#', '+', '-', '.', '!']
+        for char in markdown_chars:
+            text = str(text).replace(char, f'\\{char}')
+
+        return text

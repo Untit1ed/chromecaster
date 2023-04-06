@@ -41,10 +41,10 @@ def _play_video(caster: Caster, listener: AbstractListener, url: str, result: Me
             start_at = caster.state.history[video.title]
             if start_at > VIDEO_PLAY_THRESHOLD and (not video.duration or start_at <= video.duration - VIDEO_PLAY_THRESHOLD):
                 time_code = StringUtils.format_seconds(start_at)
-                now_playing += f"\n\n You didn't finish watching this video last time and stopped at `{time_code}`. Resume?"
+                now_playing += f"\n_You didn't finish watching this video last time and stopped at `{time_code}`\\. Resume?_"
                 options.append(time_code)
 
-    listener.send(MessageResult(now_playing, result.extra, options))
+    listener.send(MessageResult(now_playing, result.extra, options, video))
 
 
 def main():
@@ -60,16 +60,24 @@ def main():
         caster.start_debug_thread()
 
         def on_callback(listener: AbstractListener, result: MessageResult) -> None:
+            """
+            Handles messages from a listener
+            """
             url = StringUtils.find_url(result.text)
             number = StringUtils.get_float(result.text)
             seconds = StringUtils.timestamp_to_seconds(result.text)
             skip_seconds = StringUtils.extract_number(result.text)
 
-            # video url was provided
-            if url:
+            # replaying a video, if this is a currently playing video
+            # then restart it skipping video parsing
+            if url and result.text == f'rp {url}':
+                if caster.current_video and caster.current_video.original_url == url:
+                    caster.play()
+                else:
+                    _play_video(caster, listener, url, result)
+            # video url was provided, parse and play
+            elif url:
                 _play_video(caster, listener, url, result)
-            elif result.text == 'replay':
-                caster.play()
             # time code was provided
             elif seconds:
                 caster.seek(seconds)

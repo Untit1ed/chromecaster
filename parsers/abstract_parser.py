@@ -10,6 +10,7 @@ class ParseResult:
     Class to hold parser's result.
     """
     url: str
+    original_url: str
     title: str
     mime_type: str
     thumbnail_url: str = None
