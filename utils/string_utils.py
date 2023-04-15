@@ -90,34 +90,15 @@ class StringUtils:
             else:
                 filled_length = int(length * current_time // duration)
 
-            formatted_time = f"{StringUtils.format_seconds(current_time)} / {StringUtils.format_seconds(duration)}"
+            formatted_time = f"{StringUtils.seconds_to_timestamp(current_time)} / {StringUtils.seconds_to_timestamp(duration)}"
         else:
             filled_length = 0
-            formatted_time = f"{StringUtils.format_seconds(current_time)} / unknown"
+            formatted_time = f"{StringUtils.seconds_to_timestamp(current_time)} / unknown"
 
         progress_bar = '█' * filled_length + '-' * (length - filled_length)
         return f'|{progress_bar}| \
             {percentage} \
             {formatted_time}'
-
-    @staticmethod
-    def format_seconds(seconds: float) -> str:
-        """
-        Converts a floating-point number of seconds to an hh:mm:ss formatted string.
-
-        Args:
-            seconds: The number of seconds to format.
-
-        Returns:
-            A string representing the number of seconds in hh:mm:ss format.
-        """
-
-        if seconds is None:
-            return ""
-
-        hours, remainder = divmod(seconds, 3600)
-        minutes, seconds = divmod(remainder, 60)
-        return f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
 
     @staticmethod
     def find_url(text: str) -> str:
@@ -148,6 +129,25 @@ class StringUtils:
             return float(num_st)
         except ValueError:
             return -1
+
+    @staticmethod
+    def seconds_to_timestamp(seconds: float) -> str:
+        """
+        Converts a floating-point number of seconds to an hh:mm:ss formatted string.
+
+        Args:
+            seconds: The number of seconds to format.
+
+        Returns:
+            A string representing the number of seconds in hh:mm:ss format.
+        """
+
+        if seconds is None:
+            return ""
+
+        hours, remainder = divmod(seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
 
     @staticmethod
     def timestamp_to_seconds(time_str: str) -> Optional[int]:
@@ -226,7 +226,7 @@ class StringUtils:
 
         """
         # Define a list of markdown characters that need to be escaped
-        markdown_chars = ['`', '*', '_', '{', '}', '[', ']', '(', ')', '#', '+', '-', '.', '!']
+        markdown_chars = ['`', '*', '_', '{', '}', '[', ']', '(', ')', '#', '+', '-', '.', '!', '|', '=']
         for char in markdown_chars:
             text = str(text).replace(char, f'\\{char}')
 

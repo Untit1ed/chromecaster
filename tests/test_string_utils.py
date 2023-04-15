@@ -42,12 +42,12 @@ class TestStringUtils(unittest.TestCase):
         self.assertEqual(StringUtils.get_percentage(100, 100), "100%")
         self.assertEqual(StringUtils.get_percentage(300, 100), "100%")
 
-    def test_format_seconds(self):
-        """Test the format_seconds method"""
+    def test_seconds_to_timestamp(self):
+        """Test the seconds_to_timestamp method"""
 
-        self.assertEqual(StringUtils.format_seconds(60), "00:01:00")
-        self.assertEqual(StringUtils.format_seconds(3600), "01:00:00")
-        self.assertEqual(StringUtils.format_seconds(None), "")
+        self.assertEqual(StringUtils.seconds_to_timestamp(60), "00:01:00")
+        self.assertEqual(StringUtils.seconds_to_timestamp(3600), "01:00:00")
+        self.assertEqual(StringUtils.seconds_to_timestamp(None), "")
 
     def test_progress_bar(self):
         """Test the progress_bar method"""

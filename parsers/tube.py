@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from urllib.parse import urlparse
 
 import pytube
@@ -7,7 +8,7 @@ from typing_extensions import Final
 from parsers.abstract_parser import AbstractParser, ParseResult
 
 
-def fix_url(url:str) -> str:
+def fix_url(url: str) -> str:
     '''
     Adds support for yewtu.be and other invidious links that point to youtube videos
     '''
@@ -15,7 +16,7 @@ def fix_url(url:str) -> str:
     original_domain = parsed_url.netloc
 
     if original_domain.startswith('www.'):
-        domain = original_domain[4:] # strip out www. part if present
+        domain = original_domain[4:]  # strip out www. part if present
     else:
         domain = original_domain
 
@@ -23,6 +24,18 @@ def fix_url(url:str) -> str:
         url = url.replace(original_domain, TubeParser.YOUTUBE_URLS[0])
 
     return url
+
+
+@dataclass
+class Video():
+    """
+    Class to hold pytube video info
+    """
+    url: str = ''
+    quality: str = ''
+    mime_type: str = ''
+    bitrate: int = 0
+
 
 class TubeParser(AbstractParser):
     '''
@@ -43,30 +56,33 @@ class TubeParser(AbstractParser):
         youtube_url = fix_url(url)
 
         p_t = pytube.YouTube(youtube_url)
-        videos = []
-        video = None
+        videos = None
         try:
             p_t.check_availability()
+
+            # pass to the invidious parser if the vid is age restricted
+            if p_t.vid_info['playabilityStatus']['status'] == 'LOGIN_REQUIRED':
+                return None
         except LiveStreamError:
             stream_url = p_t.streaming_data['hlsManifestUrl']
-            video = {"url": stream_url, "qualityLabel": 'Live', "mimeType": 'application/x-mpegURL', 'bitrate': 0}
-            videos.append(video)
-            # videos = p_t.streaming_data['adaptiveFormats']
+            videos = [Video(stream_url, 'Live', 'application/x-mpegUrl', 0)]
 
         if not videos:
             try:
-                videos = p_t.streaming_data['formats']
+                videos = [Video(item['url'], item['qualityLabel'], item['mimeType'], item['bitrate'])
+                          for item in p_t.streaming_data['formats']]
             except Exception:
-                videos = [{"url": item.url, "qualityLabel": item.resolution,
-                           "mimeType": item.mime_type, 'bitrate': item.bitrate} for item in p_t.fmt_streams]
-        video = sorted(videos, key=lambda x: x['bitrate'], reverse=True)[0]
+                videos = [Video(item.url, item.resolution, item.mime_type, item.bitrate)
+                          for item in p_t.fmt_streams]
+
+        video = sorted(videos, key=lambda x: x.bitrate, reverse=True)[0]
 
         return ParseResult(
-            video['url'],
+            video.url,
             url,
-            f"[{video['qualityLabel']}] {p_t.title}",
-            video['mimeType'],
+            f"[{video.quality}] {p_t.title}",
+            video.mime_type,
             p_t.thumbnail_url,
             p_t.length,
             True,
-            video['qualityLabel'] == 'Live')
+            video.quality == 'Live')

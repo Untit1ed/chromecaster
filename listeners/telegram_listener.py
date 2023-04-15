@@ -52,16 +52,21 @@ class TelegramListener(AbstractListener):
         if message.options:
             buttons += [self._add_button(f'🧭 {option}', option) for option in message.options]
 
-        buttons.append(self._add_button(
-            OPTIONS['replay']['message'],
-            f'rp {message.video.original_url}', 'replay'))
+        if message.video:
+            buttons.append(self._add_button(
+                OPTIONS['replay']['message'],
+                f'rp {message.video.original_url}', 'replay'))
+
         markup.add(*buttons)
-        self.bot.send_message(message.extra.chat.id,
-                              message.text,
-                              reply_to_message_id=message.extra.id,
-                              reply_markup=markup,
-                              parse_mode="MarkdownV2",
-                              disable_web_page_preview=True)
+        try:
+            self.bot.send_message(message.extra.chat.id,
+                                  message.text,
+                                  reply_to_message_id=message.extra.id,
+                                  reply_markup=markup,
+                                  parse_mode="MarkdownV2",
+                                  disable_web_page_preview=True)
+        except Exception as error:
+            self.bot.send_message(message.extra.chat.id, repr(error))
 
     async def start(self, handler: Callable[[AbstractListener, MessageResult], None]) -> None:
         '''

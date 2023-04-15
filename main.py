@@ -22,16 +22,19 @@ def _play_video(caster: Caster, listener: AbstractListener, url: str, result: Me
             if video:
                 break
         except Exception as exception:
-            listener.send(MessageResult(str(exception), result.extra))
+            listener.send(MessageResult(StringUtils.escape_markdown(repr(exception)), result.extra))
 
     try:
-        caster.play(video)
+        if video:
+            caster.play(video)
+        else:
+            raise Exception("No video to play")
     # if there's another app interrupting, reconnect to the device
     except NotConnected:
         caster.play(video)
     # debug on client side
     except Exception as exception:
-        listener.send(MessageResult(str(exception), result.extra))
+        listener.send(MessageResult(StringUtils.escape_markdown(repr(exception)), result.extra))
         return
 
     options = []
@@ -40,7 +43,7 @@ def _play_video(caster: Caster, listener: AbstractListener, url: str, result: Me
         if video.title in caster.state.history:
             start_at = caster.state.history[video.title]
             if start_at > VIDEO_PLAY_THRESHOLD and (not video.duration or start_at <= video.duration - VIDEO_PLAY_THRESHOLD):
-                time_code = StringUtils.format_seconds(start_at)
+                time_code = StringUtils.seconds_to_timestamp(start_at)
                 now_playing += f"\n_You didn't finish watching this video last time and stopped at `{time_code}`\\. Resume?_"
                 options.append(time_code)
 

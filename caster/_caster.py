@@ -71,6 +71,7 @@ class Caster():
         self.cast_device = self._get_chromecast_device()
         self.cast_device.wait()
         self.cast_device.media_controller.block_until_active(10)
+        self.set_volume(self.state.volume)
         SpinnerUtil.stop()
 
         self.print_device_info()
@@ -99,7 +100,7 @@ class Caster():
 
         self.cast_device.media_controller.seek(seconds)
 
-    def set_playback_rate(self, playback_rate: float):
+    def set_playback_rate(self, playback_rate: float = None):
         """
         Sets the playback rate of the media on the Chromecast device.
 
@@ -107,7 +108,11 @@ class Caster():
             playback_rate: A float representing the playback rate.
         """
 
-        self.state.play_rate = playback_rate
+        if playback_rate:
+            self.state.play_rate = playback_rate
+        else:
+            playback_rate = 1
+
         self.cast_device.media_controller.send_message({
             'type': "SET_PLAYBACK_RATE",
             "playbackRate": playback_rate,
@@ -139,10 +144,10 @@ class Caster():
                            'playbackRate': self.state.play_rate,
                            'volume': {'level': self.state.volume/100}})
 
-        m_c.block_until_active(5)
+        m_c.block_until_active(15)
 
         if video.is_live:
-            self.set_playback_rate(1)
+            self.set_playback_rate() # always play live at x1
         else:
             self.set_playback_rate(self.state.play_rate)
 
@@ -164,12 +169,14 @@ class Caster():
         volume = StringUtils.escape_markdown(self.state.volume)
         thumbnail_url = StringUtils.escape_markdown(video.thumbnail_url)
         video_url=StringUtils.escape_markdown(video.url)
+        duration = StringUtils.escape_markdown(StringUtils.seconds_to_timestamp(video.duration))
 
         return f"""
-Now playing: __*{title}*__
 Device: *{device_info}*
 Playback speed: *x{play_rate}*
 Volume: *{volume}%*
+Playing: __*{title}*__
+Duration: `{duration}`
 
 [Thumbnail]({thumbnail_url}), [Stream url]({video_url})
 """
