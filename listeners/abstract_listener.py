@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Callable, Optional
 
 from attr import dataclass
+
 from parsers.abstract_parser import ParseResult
 
 

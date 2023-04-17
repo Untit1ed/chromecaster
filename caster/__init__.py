@@ -1,6 +1,6 @@
 
 from caster._caster import Caster
-from parsers import fallback, tube, web, abstract_parser
+from parsers import abstract_parser, fallback, tube, web
 
 
 def get_parser_for_url(url) -> list[abstract_parser.AbstractParser]:

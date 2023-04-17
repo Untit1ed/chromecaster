@@ -1,29 +1,11 @@
 from dataclasses import dataclass
-from urllib.parse import urlparse
 
 import pytube
 from pytube.exceptions import LiveStreamError
-from typing_extensions import Final
 
+from parsers import consts, utils
 from parsers.abstract_parser import AbstractParser, ParseResult
-
-
-def fix_url(url: str) -> str:
-    '''
-    Adds support for yewtu.be and other invidious links that point to youtube videos
-    '''
-    parsed_url = urlparse(url)
-    original_domain = parsed_url.netloc
-
-    if original_domain.startswith('www.'):
-        domain = original_domain[4:]  # strip out www. part if present
-    else:
-        domain = original_domain
-
-    if domain not in TubeParser.YOUTUBE_URLS:
-        url = url.replace(original_domain, TubeParser.YOUTUBE_URLS[0])
-
-    return url
+from parsers.invidious import InvidiousParser
 
 
 @dataclass
@@ -41,11 +23,9 @@ class TubeParser(AbstractParser):
     '''
     Youtube Parser
     '''
-    YOUTUBE_URLS: Final[list[str]] = ['youtube.com', 'youtu.be']
-
     @staticmethod
     def supported_domains() -> list[str]:
-        return TubeParser.YOUTUBE_URLS + ['/watch?v=']
+        return consts.YOUTUBE_URLS + ['/watch?v=']
 
     @staticmethod
     def parse(url: str) -> ParseResult:
@@ -53,7 +33,7 @@ class TubeParser(AbstractParser):
         Parse
         '''
 
-        youtube_url = fix_url(url)
+        youtube_url = utils.fix_url(url)
 
         p_t = pytube.YouTube(youtube_url)
         videos = None
@@ -62,7 +42,8 @@ class TubeParser(AbstractParser):
 
             # pass to the invidious parser if the vid is age restricted
             if p_t.vid_info['playabilityStatus']['status'] == 'LOGIN_REQUIRED':
-                return None
+                stream_url = InvidiousParser.get_stream_from_id(p_t.video_id)
+                videos = [Video(stream_url, 'LOGIN_REQUIRED', 'video/mp4', 0)]
         except LiveStreamError:
             stream_url = p_t.streaming_data['hlsManifestUrl']
             videos = [Video(stream_url, 'Live', 'application/x-mpegUrl', 0)]
@@ -85,4 +66,5 @@ class TubeParser(AbstractParser):
             p_t.thumbnail_url,
             p_t.length,
             True,
-            video.quality == 'Live')
+            video.quality == 'Live',
+            [("Channel Url", p_t.channel_url)])

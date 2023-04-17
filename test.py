@@ -1,12 +1,11 @@
 
 import asyncio
 import os
-import time
 
 from listeners import get_listeners
 from listeners.abstract_listener import AbstractListener, MessageResult
 from parsers import get_parser_for_url
-from utils.url_utils import UrlUtils
+from utils.string_utils import StringUtils
 
 
 async def main():
@@ -15,7 +14,7 @@ async def main():
     '''
 
     def handle(listener: AbstractListener, result: MessageResult) -> None:
-        url = UrlUtils.find_url(result.text)
+        url = StringUtils.find_url(result.text)
         if url:
             parsed_video = get_parser_for_url(result.text)[0].parse(result.text)
             listener.send(MessageResult(parsed_video.to_json(), result.extra))

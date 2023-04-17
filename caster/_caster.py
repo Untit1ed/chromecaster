@@ -132,7 +132,7 @@ class Caster():
 
         m_c = self.cast_device.media_controller
 
-        # TODO: play around with quick play in order to try different renderers
+        # _TODO: play around with quick play in order to try different renderers
 # app_display_name:
 # 'Web Video Caster'
 # app_id:
@@ -147,7 +147,7 @@ class Caster():
         m_c.block_until_active(15)
 
         if video.is_live:
-            self.set_playback_rate() # always play live at x1
+            self.set_playback_rate()  # always play live at x1
         else:
             self.set_playback_rate(self.state.play_rate)
 
@@ -164,21 +164,20 @@ class Caster():
                 thumbnail_url='https://i.imgur.com/a0hazzA.png')
 
         title = StringUtils.escape_markdown(video.title)
-        device_info = StringUtils.escape_markdown(f'{self.cast_device.name}, {self.cast_device.model_name}')
+        # device_info = StringUtils.escape_markdown(f'{self.cast_device.name}, {self.cast_device.model_name}')
         play_rate = StringUtils.escape_markdown(self.state.play_rate)
         volume = StringUtils.escape_markdown(self.state.volume)
-        thumbnail_url = StringUtils.escape_markdown(video.thumbnail_url)
-        video_url=StringUtils.escape_markdown(video.url)
+        # thumbnail_url = StringUtils.escape_markdown(video.thumbnail_url)
+        # video_url = StringUtils.escape_markdown(video.url)
         duration = StringUtils.escape_markdown(StringUtils.seconds_to_timestamp(video.duration))
+        links = str.join(', ',  [f'[{title}]({StringUtils.escape_markdown(link)})' for title, link in video.links])
 
         return f"""
-Device: *{device_info}*
-Playback speed: *x{play_rate}*
-Volume: *{volume}%*
-Playing: __*{title}*__
-Duration: `{duration}`
+__*{title}*__
 
-[Thumbnail]({thumbnail_url}), [Stream url]({video_url})
+🔊: *{volume}%* 🐢: *x{play_rate}* ⏳: `{duration}`
+
+{links}
 """
 
     def discover_chromecast_devices(self) -> list[pychromecast.CastBrowser]:
@@ -259,7 +258,7 @@ Duration: `{duration}`
         """
         while not self.stop_debug.is_set():
             # only update status when not idling, otherwise it restarts the renderer app
-            # TODO: switch to status update callbacks
+            # _TODO: switch to status update callbacks
             if (self.cast_device.media_controller.status.player_state not in ['UNKNOWN', 'IDLE']):
                 self.cast_device.media_controller.update_status()
                 time.sleep(1)

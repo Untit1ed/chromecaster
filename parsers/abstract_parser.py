@@ -17,6 +17,7 @@ class ParseResult:
     duration: float = None
     support_resume: bool = False
     is_live: bool = False
+    links: list[tuple[str, str]] = None
 
 
     def to_json(self) -> str:
